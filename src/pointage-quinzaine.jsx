@@ -179,7 +179,7 @@ function PointageQuinzaine({ ctx, currentQ, onSwitchQ, onSwitchMois }) {
       {/* Top bar */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Quinzaine selector */}
-        <QuinzaineSelector currentQ={currentQ} onChange={onSwitchQ}/>
+        <QuinzaineSelector currentQ={currentQ} onChange={onSwitchQ} chantierFilter={filterChantier}/>
 
         <StatusPill state={qState}/>
 
@@ -458,16 +458,45 @@ function RowAction({ children, onClick, title, color }) {
 }
 
 // ─── Quinzaine selector dropdown ──────────────────────────────
-function QuinzaineSelector({ currentQ, onChange }) {
+function QuinzaineSelector({ currentQ, onChange, chantierFilter }) {
   const [open, setOpen] = usePoState(false);
-  // Generate options: 6 months around current
+
+  // Determine the project's start: earliest dateStart across the applicable
+  // chantiers. With a chantier filter active, use only that one; otherwise
+  // span all chantiers. If we somehow have none (shouldn't happen — the
+  // onboarding gate enforces ≥1), default to the current quinzaine alone.
+  function qFromISO(iso) {
+    if (!iso || typeof iso !== 'string') return null;
+    const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return null;
+    const day = parseInt(m[3], 10);
+    return { year: parseInt(m[1], 10), monthIdx: parseInt(m[2], 10) - 1, half: day <= 15 ? 1 : 2 };
+  }
+  function qOrd(q) { return q.year * 24 + q.monthIdx * 2 + q.half; }
+
+  const cq = currentQuinzaine();
+  const applicable = (typeof CHANTIERS !== 'undefined' && Array.isArray(CHANTIERS))
+    ? CHANTIERS.filter(c => !chantierFilter || chantierFilter === 'all' || c.id === chantierFilter)
+    : [];
+
+  let earliestQ = cq;
+  for (const c of applicable) {
+    const q = qFromISO(c.dateStart);
+    if (q && qOrd(q) < qOrd(earliestQ)) earliestQ = q;
+  }
+
+  // Generate options from earliest project quinzaine up to (and including) the
+  // current quinzaine. Never list anything in the future.
   const options = [];
-  let q = { year: currentQ.year, monthIdx: currentQ.monthIdx, half: 2 };
-  // step back 5 quinzaines and forward 1
-  for (let i = 0; i < 5; i++) q = previousQuinzaine(q.year, q.monthIdx, q.half);
-  for (let i = 0; i < 8; i++) {
-    options.push({ ...q });
-    q = nextQuinzaine(q.year, q.monthIdx, q.half);
+  {
+    let q = { ...earliestQ };
+    const cqOrd = qOrd(cq);
+    let safety = 0;
+    while (qOrd(q) <= cqOrd && safety < 240) {
+      options.push({ ...q });
+      q = nextQuinzaine(q.year, q.monthIdx, q.half);
+      safety++;
+    }
   }
   const label = quinzaineLabel(currentQ.year, currentQ.monthIdx, currentQ.half);
 

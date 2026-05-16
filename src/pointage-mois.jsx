@@ -54,7 +54,7 @@ function PointageMois({ ctx, currentMonth, onSwitchMonth, onSwitchQuinzaine }) {
     <div className="space-y-4">
       {/* Top bar */}
       <div className="flex flex-wrap items-center gap-3">
-        <MonthSelector currentMonth={currentMonth} onChange={onSwitchMonth}/>
+        <MonthSelector currentMonth={currentMonth} onChange={onSwitchMonth} chantierFilter={filterChantier}/>
 
         <select value={filterChantier} onChange={e => setFilterChantier(e.target.value)}
                 className="bg-white border border-stone-200 rounded-lg px-3 py-2 text-sm">
@@ -263,13 +263,40 @@ function LegendDot({ color, label }) {
   );
 }
 
-function MonthSelector({ currentMonth, onChange }) {
+function MonthSelector({ currentMonth, onChange, chantierFilter }) {
   const [open, setOpen] = useMoState(false);
+
+  // Span from the earliest applicable chantier's start-month up to (and
+  // including) the current month — never list future months.
+  function monthFromISO(iso) {
+    if (!iso || typeof iso !== 'string') return null;
+    const m = iso.match(/^(\d{4})-(\d{2})/);
+    if (!m) return null;
+    return { year: parseInt(m[1], 10), monthIdx: parseInt(m[2], 10) - 1 };
+  }
+  function mOrd(m) { return m.year * 12 + m.monthIdx; }
+
+  const todayM = { year: TODAY.year, monthIdx: TODAY.monthIdx };
+  const applicable = (typeof CHANTIERS !== 'undefined' && Array.isArray(CHANTIERS))
+    ? CHANTIERS.filter(c => !chantierFilter || chantierFilter === 'all' || c.id === chantierFilter)
+    : [];
+
+  let earliest = todayM;
+  for (const c of applicable) {
+    const m = monthFromISO(c.dateStart);
+    if (m && mOrd(m) < mOrd(earliest)) earliest = m;
+  }
+
   const options = [];
-  for (let m = 8; m <= 13; m++) {
-    const mi = m % 12;
-    const y = 2025 + Math.floor(m / 12);
-    options.push({ year: y, monthIdx: mi });
+  {
+    let cur = { ...earliest };
+    const todayOrd = mOrd(todayM);
+    let safety = 0;
+    while (mOrd(cur) <= todayOrd && safety < 120) {
+      options.push({ ...cur });
+      cur = cur.monthIdx === 11 ? { year: cur.year + 1, monthIdx: 0 } : { year: cur.year, monthIdx: cur.monthIdx + 1 };
+      safety++;
+    }
   }
   const label = `${MOIS_FR[currentMonth.monthIdx][0].toUpperCase() + MOIS_FR[currentMonth.monthIdx].slice(1)} ${currentMonth.year}`;
   return (
