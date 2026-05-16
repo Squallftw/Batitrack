@@ -287,9 +287,11 @@ function Planning({ ctx }) {
     setExpanded(prev => ({ ...prev, [parentId]: true }));
     setInlineNew({ kind: 'subtask', parentId });
   }
-  function commitInlineNew(label) {
+  function commitInlineNew(label, durationDays) {
     const trimmed = (label || '').trim();
     if (!trimmed || !inlineNew) { setInlineNew(null); return; }
+    const fallback = inlineNew.kind === 'parent' ? 30 : 5;
+    const dur = Math.max(1, parseInt(durationDays, 10) || fallback);
     if (inlineNew.kind === 'parent') {
       const newGroupId = 'g-' + Date.now().toString(36);
       const seq = computeNextStartForParent('__none__');
@@ -298,7 +300,7 @@ function Planning({ ctx }) {
         label: trimmed,
         status: 'todo',
         start: [seq.getFullYear(), seq.getMonth(), seq.getDate()],
-        duration: 30,
+        duration: dur,
         children: [],
       }]);
     } else {
@@ -307,7 +309,7 @@ function Planning({ ctx }) {
         id: 't-' + Date.now().toString(36),
         label: trimmed,
         start: [seq.getFullYear(), seq.getMonth(), seq.getDate()],
-        duration: 5,
+        duration: dur,
         status: 'todo',
       }, inlineNew.parentId);
     }
@@ -512,8 +514,10 @@ function Planning({ ctx }) {
 
             {/* Body */}
             <div className="relative">
-              {/* Today vertical line spanning all rows */}
-              <div className="absolute top-0 bottom-0 z-10 pointer-events-none"
+              {/* Today vertical line spanning all rows. No z-index — must stay
+                  BELOW the sticky left TÂCHE column (z-[5]) so it doesn't bleed
+                  through it when today is scrolled past the visible viewport. */}
+              <div className="absolute top-0 bottom-0 pointer-events-none"
                    style={{ left: LEFT_W + todayOffset * dayPx, width: 2, background:'#0E5460', opacity: 0.5 }}>
                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full" style={{ background:'#0E5460' }}/>
               </div>
@@ -540,7 +544,12 @@ function Planning({ ctx }) {
                              setSelectedGroupId(row.id);
                              setSelectedId(null);
                            }}
-                           onDoubleClick={() => setEditingGroup(row.group)}
+                           onDoubleClick={(e) => {
+                             // Double-clicks that originated on a button (chevron,
+                             // + sub-task) shouldn't pop the edit modal.
+                             if (e.target.closest('button')) return;
+                             setEditingGroup(row.group);
+                           }}
                            style={{ width: LEFT_W, background: bg, borderColor:'#E8E2D8', cursor:'pointer' }}>
                         <button onClick={() => setExpanded({ ...expanded, [row.id]: expanded[row.id] === false })}
                                 className="mr-2 text-stone-500 hover:text-stone-900">
@@ -922,19 +931,22 @@ function GroupEditModal({ group, plan, chantier, onSave, onDelete, onClose }) {
 }
 
 // Inline row used inside the Planning gantt to spawn a new parent or subtask
-// without opening a modal. Renders as a regular row but with an autofocused
-// name input. Enter commits, Escape cancels, blur commits if non-empty.
+// without opening a modal. Two inputs: name (left, flex) and duration (right,
+// narrow). Tab between them, Enter commits, Escape cancels. Blur only commits
+// when focus actually leaves the whole row — not when tabbing between fields.
 function InlineNewRow({ kind, rowH, leftW, totalWidth, onCommit, onCancel }) {
   const { useState, useRef } = React;
-  const [value, setValue] = useState('');
-  const doneRef = useRef(false);
   const isParent = kind === 'parent';
+  const [value, setValue] = useState('');
+  const [duration, setDuration] = useState(isParent ? '30' : '5');
+  const doneRef = useRef(false);
+  const rowRef = useRef(null);
   const dot = STATUS_COLORS.todo.dot;
 
   function commit() {
     if (doneRef.current) return;
     doneRef.current = true;
-    onCommit(value);
+    onCommit(value, duration);
   }
   function cancel() {
     if (doneRef.current) return;
@@ -945,13 +957,16 @@ function InlineNewRow({ kind, rowH, leftW, totalWidth, onCommit, onCancel }) {
     if (e.key === 'Enter') { e.preventDefault(); commit(); }
     else if (e.key === 'Escape') { e.preventDefault(); cancel(); }
   }
-  function onBlur() {
+  // Only commit/cancel when focus leaves the entire row. Tabbing from name to
+  // duration would otherwise fire blur and commit prematurely.
+  function onBlur(e) {
+    if (rowRef.current && e.relatedTarget && rowRef.current.contains(e.relatedTarget)) return;
     if (value.trim()) commit(); else cancel();
   }
 
   const bg = isParent ? '#FAF7F1' : 'white';
   return (
-    <div className="flex border-b" style={{ height: rowH, borderColor:'#F0EAE0', background: bg }}>
+    <div ref={rowRef} className="flex border-b" style={{ height: rowH, borderColor:'#F0EAE0', background: bg }}>
       <div className="sticky left-0 z-[5] flex items-center px-3 border-r"
            style={{ width: leftW, background: bg, borderColor:'#E8E2D8' }}>
         {isParent ? (
@@ -967,11 +982,19 @@ function InlineNewRow({ kind, rowH, leftW, totalWidth, onCommit, onCancel }) {
                onKeyDown={onKey}
                onBlur={onBlur}
                placeholder={isParent
-                 ? 'Nouvelle tâche parente — Entrée pour valider, Échap pour annuler'
-                 : 'Nouvelle sous-tâche — Entrée pour valider, Échap pour annuler'}
+                 ? 'Nom de la tâche parente — Tab pour la durée, Entrée pour valider'
+                 : 'Nom de la sous-tâche — Tab pour la durée, Entrée pour valider'}
                className={`flex-1 bg-transparent outline-none border-b border-dashed min-w-0 ${isParent ? 'font-bold text-[11px] uppercase tracking-wider' : 'text-[11px] tracking-wider'} text-stone-900`}
                style={{ borderColor: '#0E5460', padding: '2px 4px' }}/>
-        {!isParent && <span className="text-[10px] font-semibold text-stone-400 tabular-nums ml-2">5j</span>}
+        <input type="number" min="1"
+               value={duration}
+               onChange={e => setDuration(e.target.value)}
+               onKeyDown={onKey}
+               onBlur={onBlur}
+               onFocus={e => e.target.select()}
+               className="text-[10px] font-semibold text-stone-700 tabular-nums ml-2 bg-transparent outline-none border-b border-dashed text-right"
+               style={{ width: 34, borderColor: '#0E5460', padding: '2px 2px' }}/>
+        <span className="text-[10px] font-semibold text-stone-500 ml-0.5">j</span>
       </div>
       <div className="relative" style={{ width: totalWidth }}/>
     </div>
