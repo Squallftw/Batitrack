@@ -659,6 +659,79 @@ function DrillPayments({ m }) {
   );
 }
 
+// ─── Low-stock consommables widget ────────────────────────────
+function LowStockWidget({ items, purchases, consumption, transfers, onOpenConsommables }) {
+  const alerts = useBdMemo(() => {
+    const computeTotal = window.computeStockTotal;
+    if (typeof computeTotal !== 'function') return [];
+    const rows = [];
+    items.forEach(it => {
+      if (!(it.threshold > 0)) return;
+      const total = computeTotal(it.id, purchases, consumption, transfers);
+      if (total < it.threshold) {
+        const ratio = Math.max(0, total / it.threshold);
+        rows.push({ it, total, ratio });
+      }
+    });
+    rows.sort((a, b) => a.ratio - b.ratio);
+    return rows;
+  }, [items, purchases, consumption, transfers]);
+
+  const visible = alerts.slice(0, 6);
+  const overflow = Math.max(0, alerts.length - visible.length);
+
+  return (
+    <Card className="overflow-hidden cursor-pointer hover:shadow-md transition" onClick={onOpenConsommables}>
+      <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: '#F0EAE0' }}>
+        <h3 className="font-bold text-sm">Stock à réapprovisionner</h3>
+        {alerts.length > 0 && (
+          <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                style={{ background: '#FBE3DC', color: '#8A2C1E' }}>
+            {alerts.length} alerte{alerts.length > 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+      {alerts.length === 0 ? (
+        <div className="px-4 py-4 flex items-center gap-2 text-sm" style={{ color: '#2E9152' }}>
+          <Icons.Check size={14}/>
+          <span className="font-semibold">Stock OK — aucune alerte</span>
+        </div>
+      ) : (
+        <>
+          <div className="divide-y" style={{ borderColor: '#F0EAE0' }}>
+            {visible.map(({ it, total, ratio }) => {
+              const critical = ratio < 0.5;
+              const color = critical ? '#C25B3F' : '#C58122';
+              const pct = Math.min(100, ratio * 100);
+              return (
+                <div key={it.id} className="px-4 py-2 flex items-center gap-3" style={{ borderColor: '#F0EAE0' }}>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm truncate">{it.name}</div>
+                    <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden mt-1">
+                      <div className="h-full rounded-full" style={{ width: pct + '%', background: color }}/>
+                    </div>
+                  </div>
+                  <div className="text-right" style={{ minWidth: 70 }}>
+                    <div className="text-xs font-bold tabular-nums" style={{ color }}>
+                      {total} <span className="text-stone-400 font-medium">/{it.threshold}</span>
+                    </div>
+                    <div className="text-[10px] text-stone-500">{it.unit}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {overflow > 0 && (
+            <div className="px-4 py-2 border-t text-[11px] text-stone-500 hover:text-stone-900" style={{ borderColor: '#F0EAE0' }}>
+              + {overflow} autre{overflow > 1 ? 's' : ''} article{overflow > 1 ? 's' : ''} en alerte
+            </div>
+          )}
+        </>
+      )}
+    </Card>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────
 function BudgetDashboard({ ctx }) {
   const [period, setPeriod] = useBdState('all');
@@ -722,6 +795,12 @@ function BudgetDashboard({ ctx }) {
           <BurnChart metrics={port.perChantier} srcs={srcs}/>
         </div>
         <div className="space-y-4">
+          <LowStockWidget
+            items={srcs.items}
+            purchases={ctx.consommables?.purchases || window.PURCHASES_SEED || []}
+            consumption={srcs.consumption}
+            transfers={ctx.consommables?.transfers || window.TRANSFERS_SEED || []}
+            onOpenConsommables={() => { window.location.hash = '/consommables'; }}/>
           <AlertsPanel metrics={port.perChantier} onOpen={(cid, view) => setDrill({ chantierId: cid, view })}/>
           <CostSplitDonut materials={port.materials} labor={port.labor} equipment={port.equipment}/>
           <PLBars metrics={port.perChantier}/>

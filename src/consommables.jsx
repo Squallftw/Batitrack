@@ -447,6 +447,9 @@ function CnKpi({ icon, label, value, sub, accent, warn }) {
 
 window.Consommables = Consommables;
 window.computeStockByItem = computeStockByItem;
+window.computeStockTotal = function(itemId, purchases, consumption, transfers) {
+  return computeStockByItem(itemId, purchases, consumption, transfers).total;
+};
 window.computeStock = computeStock;
 window.purchaseTotal = purchaseTotal;
 window.getSupplier = getSupplier;

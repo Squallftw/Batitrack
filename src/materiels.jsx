@@ -31,74 +31,74 @@ function seedPeriods(snapshot) {
 }
 
 const MATERIELS_SEED = [
-  // Engins lourds
-  { id: 'mt-1',  name: 'Grues mobiles',           cat: 'engins',    qty: 2,    cost: 1200, deployments: seedPeriods({ 'ch-1': 1 }) },
-  { id: 'mt-2',  name: 'Pelles excavatrices',     cat: 'engins',    qty: 2,    cost: 1500, deployments: [
+  // Engins lourds — typically rented in Morocco
+  { id: 'mt-1',  name: 'Grues mobiles',           cat: 'engins',    type: 'loue',    qty: 2,    cost: 1200, deployments: seedPeriods({ 'ch-1': 1 }) },
+  { id: 'mt-2',  name: 'Pelles excavatrices',     cat: 'engins',    type: 'loue',    qty: 2,    cost: 1500, deployments: [
     { id:'d1', chantierId:'ch-2', start:'2025-09-01', end:'2026-02-28', qty:1 },
     { id:'d2', chantierId:'ch-2', start:'2026-04-01', end:'2026-06-30', qty:1 }
   ]},
-  { id: 'mt-3',  name: 'Camions bennes',          cat: 'engins',    qty: 3,    cost: 800,  deployments: [
+  { id: 'mt-3',  name: 'Camions bennes',          cat: 'engins',    type: 'loue',    qty: 3,    cost: 800,  deployments: [
     { id:'d3', chantierId:'ch-2', start:'2026-02-01', end:'2026-06-30', qty:2 },
     { id:'d4', chantierId:'ch-3', start:'2025-11-15', end:'2026-01-15', qty:1 }
   ]},
-  { id: 'mt-4',  name: 'Dumpers',                 cat: 'engins',    qty: 2,    cost: 600,  deployments: seedPeriods({ 'ch-2': 1 }) },
-  { id: 'mt-5',  name: 'Compacteurs',             cat: 'engins',    qty: 2,    cost: 500,  deployments: [
+  { id: 'mt-4',  name: 'Dumpers',                 cat: 'engins',    type: 'loue',    qty: 2,    cost: 600,  deployments: seedPeriods({ 'ch-2': 1 }) },
+  { id: 'mt-5',  name: 'Compacteurs',             cat: 'engins',    type: 'loue',    qty: 2,    cost: 500,  deployments: [
     { id:'d5', chantierId:'ch-1', start:'2025-11-20', end:'2025-12-15', qty:1 },
     { id:'d6', chantierId:'ch-2', start:'2025-10-01', end:'2025-12-31', qty:1 }
   ]},
-  { id: 'mt-6',  name: 'Élévateurs',              cat: 'engins',    qty: 2,    cost: 700,  deployments: seedPeriods({ 'ch-1': 1 }) },
+  { id: 'mt-6',  name: 'Élévateurs',              cat: 'engins',    type: 'loue',    qty: 2,    cost: 700,  deployments: seedPeriods({ 'ch-1': 1 }) },
 
-  // Béton & vibration
-  { id: 'mt-7',  name: 'Centrales à béton',       cat: 'beton',     qty: 1,    cost: 2500, deployments: seedPeriods({ 'ch-2': 1 }) },
-  { id: 'mt-8',  name: 'Bétonnières',             cat: 'beton',     qty: 4,    cost: 250,  deployments: [
+  // Béton & vibration — centrale rented, bétonnières/vibreurs owned
+  { id: 'mt-7',  name: 'Centrales à béton',       cat: 'beton',     type: 'loue',    qty: 1,    cost: 2500, deployments: seedPeriods({ 'ch-2': 1 }) },
+  { id: 'mt-8',  name: 'Bétonnières',             cat: 'beton',     type: 'possede', qty: 4,    cost: 250,  deployments: [
     { id:'d7', chantierId:'ch-1', start:'2026-03-15', end:'2026-06-30', qty:1 },
     { id:'d8', chantierId:'ch-3', start:'2026-02-01', end:'2026-05-31', qty:1 }
   ]},
-  { id: 'mt-9',  name: 'Vibreurs à essence',      cat: 'beton',     qty: 5,    cost: 80,   deployments: [
+  { id: 'mt-9',  name: 'Vibreurs à essence',      cat: 'beton',     type: 'possede', qty: 5,    cost: 80,   deployments: [
     { id:'d9',  chantierId:'ch-1', start:'2026-01-15', end:'2026-06-30', qty:2 },
     { id:'d10', chantierId:'ch-2', start:'2026-02-01', end:'2026-06-30', qty:1 }
   ]},
-  { id: 'mt-10', name: 'Vibreurs à air comprimé', cat: 'beton',     qty: 3,    cost: 100,  deployments: seedPeriods({ 'ch-2': 1 }) },
+  { id: 'mt-10', name: 'Vibreurs à air comprimé', cat: 'beton',     type: 'possede', qty: 3,    cost: 100,  deployments: seedPeriods({ 'ch-2': 1 }) },
 
-  // Énergie & fluides
-  { id: 'mt-11', name: 'Compresseurs',            cat: 'energie',   qty: 4,    cost: 350,  deployments: [
+  // Énergie & fluides — compresseurs owned, groupes électrogènes rented
+  { id: 'mt-11', name: 'Compresseurs',            cat: 'energie',   type: 'possede', qty: 4,    cost: 350,  deployments: [
     { id:'d11', chantierId:'ch-1', start:'2026-01-15', end:'2026-06-30', qty:1 },
     { id:'d12', chantierId:'ch-2', start:'2025-10-01', end:'2026-06-30', qty:1 }
   ]},
-  { id: 'mt-12', name: 'Groupes motopompes',      cat: 'energie',   qty: 2,    cost: 200,  deployments: seedPeriods({ 'ch-2': 1 }) },
-  { id: 'mt-13', name: 'Groupes électrogènes',    cat: 'energie',   qty: 2,    cost: 450,  deployments: [
+  { id: 'mt-12', name: 'Groupes motopompes',      cat: 'energie',   type: 'possede', qty: 2,    cost: 200,  deployments: seedPeriods({ 'ch-2': 1 }) },
+  { id: 'mt-13', name: 'Groupes électrogènes',    cat: 'energie',   type: 'loue',    qty: 2,    cost: 450,  deployments: [
     { id:'d13', chantierId:'ch-1', start:'2025-11-01', end:'2026-06-30', qty:1 },
     { id:'d14', chantierId:'ch-3', start:'2025-12-01', end:'2026-04-30', qty:1 }
   ]},
 
-  // Coffrage & étais
-  { id: 'mt-14', name: 'Tours pall',              cat: 'coffrage',  qty: 100,  cost: 15,   deployments: [
+  // Coffrage & étais — typically rented from coffrage suppliers
+  { id: 'mt-14', name: 'Tours pall',              cat: 'coffrage',  type: 'loue',    qty: 100,  cost: 15,   deployments: [
     { id:'d15', chantierId:'ch-1', start:'2025-12-01', end:'2026-05-15', qty:40 },
     { id:'d16', chantierId:'ch-2', start:'2025-10-15', end:'2026-06-30', qty:30 }
   ]},
-  { id: 'mt-15', name: 'Étais',                   cat: 'coffrage',  qty: 1000, cost: 2,    deployments: [
+  { id: 'mt-15', name: 'Étais',                   cat: 'coffrage',  type: 'possede', qty: 1000, cost: 2,    deployments: [
     { id:'d17', chantierId:'ch-1', start:'2025-11-20', end:'2026-06-30', qty:320 },
     { id:'d18', chantierId:'ch-2', start:'2025-09-15', end:'2026-06-30', qty:280 },
     { id:'d19', chantierId:'ch-3', start:'2025-11-15', end:'2026-04-30', qty:90 }
   ]},
-  { id: 'mt-16', name: 'Échafaudage métallique',  cat: 'coffrage',  qty: null, unit: 'm²', cost: 25,   deployments: [
+  { id: 'mt-16', name: 'Échafaudage métallique',  cat: 'coffrage',  type: 'loue',    qty: null, unit: 'm²', cost: 25,   deployments: [
     { id:'d20', chantierId:'ch-2', start:'2026-02-01', end:'2026-06-30', qty:1 },
     { id:'d21', chantierId:'ch-3', start:'2026-01-15', end:'2026-04-30', qty:1 }
   ]},
 
-  // Véhicules
-  { id: 'mt-17', name: 'Véhicules de service',    cat: 'vehicules', qty: 4,    cost: 250,  deployments: [
+  // Véhicules — fleet owned
+  { id: 'mt-17', name: 'Véhicules de service',    cat: 'vehicules', type: 'possede', qty: 4,    cost: 250,  deployments: [
     { id:'d22', chantierId:'ch-1', start:'2025-10-15', end:'2026-08-31', qty:1 },
     { id:'d23', chantierId:'ch-2', start:'2025-09-01', end:'2026-08-31', qty:1 },
     { id:'d24', chantierId:'ch-3', start:'2025-11-10', end:'2026-04-30', qty:1 }
   ]},
 
-  // Outillage
-  { id: 'mt-18', name: 'Cisailles',               cat: 'outils',    qty: 10,   cost: 50,   deployments: [
+  // Outillage — owned
+  { id: 'mt-18', name: 'Cisailles',               cat: 'outils',    type: 'possede', qty: 10,   cost: 50,   deployments: [
     { id:'d25', chantierId:'ch-1', start:'2025-11-20', end:'2026-06-30', qty:3 },
     { id:'d26', chantierId:'ch-2', start:'2025-09-15', end:'2026-06-30', qty:4 }
   ]},
-  { id: 'mt-19', name: 'Petit matériel & outillage', cat: 'outils', qty: null, unit: 'lot', cost: 120,  deployments: [
+  { id: 'mt-19', name: 'Petit matériel & outillage', cat: 'outils', type: 'possede', qty: null, unit: 'lot', cost: 120,  deployments: [
     { id:'d27', chantierId:'ch-1', start:'2025-10-15', end:'2026-08-31', qty:1 },
     { id:'d28', chantierId:'ch-2', start:'2025-09-01', end:'2026-08-31', qty:1 },
     { id:'d29', chantierId:'ch-3', start:'2025-11-10', end:'2026-04-30', qty:1 }
@@ -141,6 +141,7 @@ function Materiels({ ctx }) {
       window.__BATI_PERSIST_PATCH({ materiels: items });
     }
   }, [items]);
+  const [filterType, setFilterType] = useMtState('all');
   const [filterCat, setFilterCat] = useMtState('all');
   const [filterChantier, setFilterChantier] = useMtState('all');
   const [search, setSearch] = useMtState('');
@@ -170,6 +171,7 @@ function Materiels({ ctx }) {
   }, [items, todayStr]);
 
   const filtered = items.filter(m => {
+    if (filterType !== 'all' && (m.type || 'loue') !== filterType) return false;
     if (filterCat !== 'all' && m.cat !== filterCat) return false;
     if (filterChantier !== 'all' && !deploymentOnDate(m, todayStr)[filterChantier]) return false;
     if (search && !m.name.toLowerCase().includes(search.toLowerCase())) return false;
@@ -200,6 +202,12 @@ function Materiels({ ctx }) {
       <PageHeader title="Matériels"
                   subtitle="Inventaire, déploiement et coût d'utilisation journalier."
                   right={<>
+                    <select value={filterType} onChange={e => setFilterType(e.target.value)}
+                            className="bg-white border border-stone-200 rounded-lg px-3 py-2 text-sm">
+                      <option value="all">Tous types</option>
+                      <option value="loue">Loué</option>
+                      <option value="possede">Possédé</option>
+                    </select>
                     <select value={filterCat} onChange={e => setFilterCat(e.target.value)}
                             className="bg-white border border-stone-200 rounded-lg px-3 py-2 text-sm">
                       <option value="all">Toutes catégories</option>
@@ -299,6 +307,19 @@ function Materiels({ ctx }) {
                             <td className="px-4 py-2.5">
                               <div className="font-semibold inline-flex items-center gap-1.5">
                                 {m.name}
+                                {(() => {
+                                  const t = m.type || 'loue';
+                                  const isOwned = t === 'possede';
+                                  return (
+                                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+                                          style={{
+                                            background: isOwned ? '#D8E5E7' : '#F2DCD3',
+                                            color: isOwned ? '#0E5460' : '#C25B3F'
+                                          }}>
+                                      {isOwned ? 'Possédé' : 'Loué'}
+                                    </span>
+                                  );
+                                })()}
                                 <Icons.Calendar size={11} className="text-stone-300"/>
                               </div>
                             </td>
@@ -685,6 +706,7 @@ function DeploymentEditModal({ mode, dep, item, onSave, onDelete, onClose }) {
 function MaterielForm({ item, onSave, onDelete, onClose }) {
   const [name, setName] = useMtState(item?.name || '');
   const [cat, setCat] = useMtState(item?.cat || 'engins');
+  const [type, setType] = useMtState(item?.type || 'loue');
   const [qty, setQty] = useMtState(item?.qty ?? '');
   const [unit, setUnit] = useMtState(item?.unit || 'unités');
   const [cost, setCost] = useMtState(item?.cost || 0);
@@ -696,11 +718,30 @@ function MaterielForm({ item, onSave, onDelete, onClose }) {
       id: item?.id || ('mt-' + Date.now().toString(36)),
       name: name.trim(),
       cat,
+      type,
       qty: qty === '' ? null : parseInt(qty, 10),
       unit: qty === '' ? unit : undefined,
       cost: parseFloat(cost) || 0
     };
     onSave(updated);
+  }
+
+  const isOwned = type === 'possede';
+  const costLabel = isOwned ? "Coût d'amortissement (DH / jour)" : "Coût d'utilisation (DH / jour)";
+
+  function TypeBtn({ value, label }) {
+    const active = type === value;
+    return (
+      <button type="button" onClick={() => setType(value)}
+              className={`flex-1 px-3 py-2 text-sm font-semibold transition ${value === 'loue' ? 'rounded-l-lg border-r-0' : 'rounded-r-lg'}`}
+              style={{
+                background: active ? '#0E5460' : '#fff',
+                color: active ? '#fff' : '#6B6359',
+                border: '1px solid ' + (active ? '#0E5460' : '#E8E2D8')
+              }}>
+        {label}
+      </button>
+    );
   }
 
   return (
@@ -710,6 +751,13 @@ function MaterielForm({ item, onSave, onDelete, onClose }) {
           <div className="text-[10px] uppercase tracking-wider font-bold text-stone-500 mb-1.5">Nom du matériel</div>
           <input className="bati-input" autoFocus value={name} onChange={e => setName(e.target.value)} placeholder="ex. Pelle excavatrice CAT 320"/>
         </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider font-bold text-stone-500 mb-1.5">Type</div>
+          <div className="flex">
+            <TypeBtn value="loue" label="Loué"/>
+            <TypeBtn value="possede" label="Possédé"/>
+          </div>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <div className="text-[10px] uppercase tracking-wider font-bold text-stone-500 mb-1.5">Catégorie</div>
@@ -718,8 +766,11 @@ function MaterielForm({ item, onSave, onDelete, onClose }) {
             </select>
           </div>
           <div>
-            <div className="text-[10px] uppercase tracking-wider font-bold text-stone-500 mb-1.5">Coût d'utilisation (DH / jour)</div>
+            <div className="text-[10px] uppercase tracking-wider font-bold text-stone-500 mb-1.5">{costLabel}</div>
             <input type="number" className="bati-input" value={cost} onChange={e => setCost(e.target.value)} placeholder="0"/>
+            {isOwned && (
+              <div className="text-[10px] text-stone-500 mt-1">Tarif interne pour répartir l'achat sur les chantiers.</div>
+            )}
           </div>
           <div>
             <div className="text-[10px] uppercase tracking-wider font-bold text-stone-500 mb-1.5">Quantité totale</div>
